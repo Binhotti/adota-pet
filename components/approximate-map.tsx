@@ -1,0 +1,2 @@
+import { MapPin } from "lucide-react";
+export function ApproximateMap({city,state}:{city:string;state:string}){const place=`${city}, ${state}, Brasil`;return <section className="approximateMap"><div><MapPin/><span><b>Localização aproximada</b><small>O endereço exato só é liberado após a aprovação e o agendamento da visita.</small></span></div><iframe title={`Mapa aproximado de ${place}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={`https://maps.google.com/maps?q=${encodeURIComponent(place)}&z=11&output=embed`}/></section>}
