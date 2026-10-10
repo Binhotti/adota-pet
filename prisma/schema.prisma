@@ -76,6 +76,7 @@ model Organization {
 
 model Animal {
   id          String          @id @default(cuid())
+  slug        String          @unique
   name        String
   description String
   species     AnimalSpecies
