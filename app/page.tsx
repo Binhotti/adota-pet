@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CheckCircle2, Dog, Heart, MapPin, Menu, PawPrint, Search, ShieldCheck, Star, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, Dog, Heart, MapPin, PawPrint, Search, ShieldCheck, Star, Users } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
 
 const animals = [
   { name: "Thor", type: "SRD", sex: "Macho", age: "2 anos", city: "São Paulo - SP", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=700&q=85" },
@@ -16,14 +17,7 @@ function Logo() {
 export default function Home() {
   return (
     <main>
-      <header className="header container">
-        <Logo />
-        <nav aria-label="Navegação principal">
-          <Link className="active" href="/">Início</Link><Link href="/animais">Animais</Link><Link href="#como-adotar">Como adotar</Link><Link href="#ongs">ONGs/Protetores</Link>
-        </nav>
-        <div className="headerActions"><Link href="/login">Entrar</Link><Link className="button orange small" href="/painel/animais/novo">Cadastrar animal</Link></div>
-        <button className="menu" aria-label="Abrir menu"><Menu /></button>
-      </header>
+      <SiteHeader />
 
       <section className="hero">
         <div className="container heroGrid">
