@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADOPTER
+  PROTECTOR
+  NGO
+  ADMIN
+}
+
+enum AnimalStatus {
+  AVAILABLE
+  IN_PROCESS
+  ADOPTED
+  UNAVAILABLE
+}
+
+enum AnimalSpecies {
+  DOG
+  CAT
+  OTHER
+}
+
+enum AnimalSex {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum RequestStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum VisitStatus {
+  REQUESTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id              String            @id @default(cuid())
+  name            String
+  email           String            @unique
+  passwordHash    String?
+  role            UserRole          @default(ADOPTER)
+  phone           String?
+  city            String?
+  state           String?
+  organization    Organization?
+  animals         Animal[]
+  adoptionRequests AdoptionRequest[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  verified    Boolean  @default(false)
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Animal {
+  id          String          @id @default(cuid())
+  name        String
+  description String
+  species     AnimalSpecies
+  breed       String?
+  sex         AnimalSex
+  ageMonths   Int?
+  size        String?
+  status      AnimalStatus    @default(AVAILABLE)
+  city        String
+  state       String
+  latitude    Decimal?        @db.Decimal(9, 6)
+  longitude   Decimal?        @db.Decimal(9, 6)
+  imageUrls   String[]
+  guardianId  String
+  guardian    User            @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  requests    AdoptionRequest[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([species, status, city, state])
+}
+
+model AdoptionRequest {
+  id        String        @id @default(cuid())
+  message   String
+  status    RequestStatus @default(PENDING)
+  animalId  String
+  adopterId String
+  animal    Animal        @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  adopter   User          @relation(fields: [adopterId], references: [id], onDelete: Cascade)
+  visit     Visit?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([animalId, adopterId])
+}
+
+model Visit {
+  id                String        @id @default(cuid())
+  scheduledAt       DateTime?
+  location          String?
+  notes             String?
+  status            VisitStatus   @default(REQUESTED)
+  adoptionRequestId String        @unique
+  adoptionRequest   AdoptionRequest @relation(fields: [adoptionRequestId], references: [id], onDelete: Cascade)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
