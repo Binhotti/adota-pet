@@ -2,7 +2,6 @@ import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } fr
 import { promisify } from "util";
 import { cookies } from "next/headers";
 import type { UserRole } from "@prisma/client";
-import { auth as googleAuth } from "@/auth";
 
 const scrypt = promisify(scryptCallback);
 const COOKIE_NAME = "adotapet_session";
@@ -19,5 +18,5 @@ export async function createSession(user: SessionUser) {
   const signature = createHmac("sha256", secret()).update(payload).digest("base64url");
   (await cookies()).set(COOKIE_NAME, `${payload}.${signature}`, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 604800 });
 }
-export async function getSession(): Promise<SessionUser | null> { const token = (await cookies()).get(COOKIE_NAME)?.value; if (token) { const [payload, signature] = token.split("."); const expected = createHmac("sha256", secret()).update(payload).digest("base64url"); if (signature && signature.length === expected.length && timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) { try { const data = JSON.parse(Buffer.from(payload, "base64url").toString()); if (data.exp > Date.now()) return data; } catch {} } } const session=await googleAuth(); return session?.user?.id&&session.user.email?{id:session.user.id,name:session.user.name??"Usuário",email:session.user.email,role:session.user.role}:null; }
-export async function clearSession() { const store=await cookies(); store.delete(COOKIE_NAME); store.delete("authjs.session-token"); store.delete("__Secure-authjs.session-token"); }
+export async function getSession(): Promise<SessionUser | null> { const token = (await cookies()).get(COOKIE_NAME)?.value; if (!token) return null; const [payload, signature] = token.split("."); const expected = createHmac("sha256", secret()).update(payload).digest("base64url"); if (signature && signature.length === expected.length && timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) { try { const data = JSON.parse(Buffer.from(payload, "base64url").toString()); if (data.exp > Date.now()) return data; } catch {} } return null; }
+export async function clearSession() { (await cookies()).delete(COOKIE_NAME); }
