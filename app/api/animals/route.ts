@@ -25,7 +25,9 @@ export async function POST(request: Request) {
         slug, name, description: String(body.description ?? ""), species: body.species,
         breed: String(body.breed ?? "SRD"), sex: body.sex, ageMonths,
         size: String(body.size ?? "Médio"), city: String(body.city ?? ""),
-        state: String(body.state ?? "").toUpperCase(), imageUrls, guardianId: user.id,
+        state: String(body.state ?? "").toUpperCase(), imageUrls: imageUrls.slice(0, 8), guardianId: user.id,
+        vaccinated: body.vaccinated === "on", neutered: body.neutered === "on", dewormed: body.dewormed === "on",
+        specialNeeds: String(body.specialNeeds ?? "").trim() || null,
       },
     });
     return NextResponse.json({ redirect: `/animais/${animal.slug}` }, { status: 201 });

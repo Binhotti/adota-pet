@@ -1,0 +1,1 @@
+import { Suspense } from "react";import { PasswordRecoveryForm } from "@/components/password-recovery-form";export default function Page(){return <main className="authPage"><Suspense><PasswordRecoveryForm reset/></Suspense></main>}
