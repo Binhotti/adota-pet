@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { ArrowLeft, Building2, MapPin, PawPrint, UserRound } from "lucide-react";
+import { AnimalCard } from "@/components/animal-card";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { toAnimalView } from "@/lib/animal-view";
+
+export default async function PublicProfile({params}:{params:Promise<{id:string}>}){const session=await getSession();if(!session)redirect("/login");const id=(await params).id;const person=await prisma.user.findUnique({where:{id},include:{organization:true,animals:{where:{status:"AVAILABLE"},orderBy:{createdAt:"desc"}}}});if(!person)notFound();const displayName=person.organization?.name??person.name;return <main className="publicProfilePage"><section className="container"><Link className="backLink" href="/chats"><ArrowLeft/>Voltar aos chats</Link><div className="publicProfileCard"><div className="publicAvatar">{displayName.slice(0,2).toUpperCase()}</div><div><span>{person.role==="ADOPTER"?<><UserRound/>Adotante</>:<><Building2/>ONG ou protetor</>}</span><h1>{displayName}</h1>{person.city&&<p><MapPin/>{person.city}{person.state?` - ${person.state}`:""}</p>}{person.organization?.description&&<p>{person.organization.description}</p>}</div></div>{person.role!=="ADOPTER"&&<section className="profileAnimals"><div className="sectionHead"><div><h2>Animais publicados</h2><p>Animais disponíveis para adoção por este responsável.</p></div></div>{person.animals.length?<div className="catalogGrid">{person.animals.map(animal=><AnimalCard key={animal.id} animal={toAnimalView(animal)}/>)}</div>:<div className="emptyState"><PawPrint/><h2>Nenhum animal disponível</h2><p>Este responsável não possui anúncios disponíveis no momento.</p></div>}</section>}</section></main>}
