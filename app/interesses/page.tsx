@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Heart, PawPrint } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export default async function InterestsPage(){const user=await getSession();if(!user)redirect("/login?role=ADOPTER&redirect=/interesses");if(user.role!=="ADOPTER")redirect("/painel");const requests=await prisma.adoptionRequest.findMany({where:{adopterId:user.id},include:{animal:true,visit:true},orderBy:{createdAt:"desc"}});return <main><SiteHeader/><section className="container interestsPage"><span className="eyebrow"><Heart size={16}/>Área do adotante</span><h1>Olá, {user.name.split(" ")[0]}</h1><p>Acompanhe aqui todos os seus pedidos de adoção.</p>{requests.length?<div className="interestList">{requests.map(request=><article key={request.id}><div><PawPrint/><div><h2>{request.animal.name}</h2><span>{request.animal.city} - {request.animal.state}</span></div></div><b>{request.status==="PENDING"?"Aguardando análise":request.status==="UNDER_REVIEW"?"Em análise":request.status==="APPROVED"?"Aprovada":request.status==="REJECTED"?"Não aprovada":"Cancelada"}</b>{request.visit?.scheduledAt&&<small>Visita: {request.visit.scheduledAt.toLocaleDateString("pt-BR")}</small>}</article>)}</div>:<div className="panelEmpty"><Heart/><h2>Você ainda não demonstrou interesse</h2><p>Encontre um amigo e envie uma solicitação para a ONG ou protetor responsável.</p><Link className="button green" href="/animais">Conhecer animais</Link></div>}</section></main>}
