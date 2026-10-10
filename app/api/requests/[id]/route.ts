@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/email";
 
 export async function PATCH(
   request: Request,
@@ -35,7 +34,6 @@ export async function PATCH(
       },
     });
   const notifyAdopter = (title: string, bodyText: string) => {
-    void sendEmail(item.adopter.email, title, `<h1>${title}</h1><p>${bodyText}</p>`);
     return prisma.notification.create({
       data: {
         userId: item.adopterId,
