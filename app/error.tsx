@@ -1,0 +1,1 @@
+"use client";export default function ErrorPage({reset}:{reset:()=>void}){return <main className="statePage"><h1>Algo deu errado</h1><p>Não conseguimos carregar esta página agora.</p><button className="button green" onClick={reset}>Tentar novamente</button></main>}

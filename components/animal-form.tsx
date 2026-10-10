@@ -10,6 +10,7 @@ const MAX_IMAGES = 8;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 type SelectedImage = { file: File; preview: string };
+async function compressImage(file:File){if(file.size<900000)return file;const bitmap=await createImageBitmap(file),scale=Math.min(1,1800/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement("canvas");canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);canvas.getContext("2d")?.drawImage(bitmap,0,0,canvas.width,canvas.height);const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error("Falha ao compactar imagem")),"image/webp",.82));return new File([blob],file.name.replace(/\.[^.]+$/,".webp"),{type:"image/webp"})}
 
 export function AnimalForm() {
   const router = useRouter();
@@ -58,6 +59,8 @@ export function AnimalForm() {
     });
   }
 
+  function makePrimary(index: number) { setImages((current) => [current[index], ...current.filter((_, i) => i !== index)]); }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -71,7 +74,7 @@ export function AnimalForm() {
     try {
       const uploadedUrls: string[] = [];
       for (let index = 0; index < images.length; index++) {
-        const { file } = images[index];
+        const file = await compressImage(images[index].file);
         const blob = await upload(`animais/${Date.now()}-${file.name}`, file, {
           access: "public",
           handleUploadUrl: "/api/uploads",
@@ -107,6 +110,8 @@ export function AnimalForm() {
         <label><span>Cidade</span><input name="city" required /></label>
         <label><span>Estado</span><input name="state" maxLength={2} required placeholder="SC" /></label>
       </div>
+      <fieldset className="healthFields"><legend>Saúde</legend><label><input type="checkbox" name="vaccinated"/> Vacinado</label><label><input type="checkbox" name="neutered"/> Castrado</label><label><input type="checkbox" name="dewormed"/> Vermifugado</label></fieldset>
+      <label><span>Necessidades especiais</span><textarea name="specialNeeds" rows={2} placeholder="Deixe em branco caso não tenha" /></label>
       <label><span>Descrição</span><textarea name="description" rows={5} required /></label>
       <section className="imageUploader" aria-labelledby="photos-label">
         <div className="uploadLabel"><span id="photos-label">Fotos do animal</span><small>{images.length}/{MAX_IMAGES}</small></div>
@@ -114,7 +119,7 @@ export function AnimalForm() {
           <UploadCloud /><b>Arraste as fotos aqui</b><span>ou clique para selecionar</span><small>JPG, PNG ou WebP · até 10 MB por foto</small>
           <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleFiles} hidden />
         </div>
-        {images.length > 0 && <div className="imagePreviews">{images.map(({ file, preview }, index) => <figure key={`${file.name}-${file.lastModified}`}><Image src={preview} alt={`Prévia ${index + 1}: ${file.name}`} fill unoptimized /><button type="button" onClick={() => removeImage(index)} aria-label={`Remover ${file.name}`}><Trash2 /></button>{index === 0 && <figcaption>Foto principal</figcaption>}</figure>)}</div>}
+        {images.length > 0 && <><p className="fieldHint">Clique em uma foto para torná-la a principal.</p><div className="imagePreviews">{images.map(({ file, preview }, index) => <figure key={`${file.name}-${file.lastModified}`} onClick={()=>makePrimary(index)}><Image src={preview} alt={`Prévia ${index + 1}: ${file.name}`} fill unoptimized /><button type="button" onClick={(e) => {e.stopPropagation();removeImage(index)}} aria-label={`Remover ${file.name}`}><Trash2 /></button>{index === 0 && <figcaption>Foto principal</figcaption>}</figure>)}</div></>}
       </section>
       {error && <p className="formError">{error}</p>}
       <button className="button orange" disabled={loading}>{loading ? <><Loader2 className="spin" />{progress < 100 ? `Enviando fotos... ${progress}%` : "Salvando animal..."}</> : <><Save />Cadastrar animal</>}</button>

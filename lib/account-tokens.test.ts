@@ -1,0 +1,1 @@
+import{describe,expect,it}from"vitest";import{strongPassword}from"./account-tokens";describe("strongPassword",()=>{it("aceita senha forte",()=>expect(strongPassword("AdotaPet2@")).toBe(true));it("recusa senha fraca",()=>expect(strongPassword("12345678")).toBe(false))});
