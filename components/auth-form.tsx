@@ -1,0 +1,28 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useState } from "react";
+import { Building2, Eye, EyeOff, Heart, Loader2, LockKeyhole, Mail } from "lucide-react";
+
+type AccessType = "ADOPTER" | "ORGANIZATION";
+
+export function AuthForm() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const [access, setAccess] = useState<AccessType>(params.get("role") === "ORGANIZATION" ? "ORGANIZATION" : "ADOPTER");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setLoading(true); setError("");
+    const data = new FormData(event.currentTarget);
+    const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: data.get("email"), password: data.get("password"), expectedRole: access, redirect: params.get("redirect") || undefined }) });
+    const result = await response.json();
+    if (!response.ok) { setError(result.error); setLoading(false); return; }
+    router.push(result.redirect); router.refresh();
+  }
+
+  return <div className="authCard"><div className="authIntro"><span className="eyebrow"><Heart size={16}/> Adoção responsável</span><h1>Bem-vindo de volta</h1><p>Entre para acompanhar seus interesses e ajudar a transformar vidas.</p></div><div className="roleTabs"><button className={access === "ADOPTER" ? "active" : ""} onClick={() => setAccess("ADOPTER")}><Heart/> Quero adotar</button><button className={access === "ORGANIZATION" ? "active" : ""} onClick={() => setAccess("ORGANIZATION")}><Building2/> ONG/Protetor</button></div><form onSubmit={submit} className="authForm"><label><span>E-mail</span><div><Mail/><input required type="email" name="email" placeholder="voce@email.com" autoComplete="email"/></div></label><label><span>Senha</span><div><LockKeyhole/><input required type={showPassword ? "text" : "password"} name="password" placeholder="Sua senha" autoComplete="current-password"/><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label="Mostrar senha">{showPassword ? <EyeOff/> : <Eye/>}</button></div></label>{error && <p className="formError">{error}</p>}<button className="button orange" disabled={loading}>{loading ? <Loader2 className="spin"/> : "Entrar"}</button></form><p className="authSwitch">Ainda não possui conta? <Link href={`/cadastro?role=${access}`}>Cadastre-se gratuitamente</Link></p></div>;
+}
