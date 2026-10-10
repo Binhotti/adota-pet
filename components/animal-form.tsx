@@ -60,6 +60,7 @@ export function AnimalForm() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     if (!images.length) {
       setError("Adicione pelo menos uma foto do animal.");
       return;
@@ -78,7 +79,7 @@ export function AnimalForm() {
         uploadedUrls.push(blob.url);
         setProgress(Math.round(((index + 1) / images.length) * 100));
       }
-      const formData = new FormData(event.currentTarget);
+      const formData = new FormData(form);
       const response = await fetch("/api/animals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
