@@ -2,19 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, CheckCircle2, Dog, Heart, MapPin, PawPrint, Search, ShieldCheck, Star, Users } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
-
-const animals = [
-  { name: "Thor", type: "SRD", sex: "Macho", age: "2 anos", city: "São Paulo - SP", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=700&q=85" },
-  { name: "Mel", type: "SRD", sex: "Fêmea", age: "1 ano", city: "Curitiba - PR", image: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=700&q=85" },
-  { name: "Bob", type: "SRD", sex: "Macho", age: "3 anos", city: "Belo Horizonte - MG", image: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=85" },
-  { name: "Luna", type: "SRD", sex: "Fêmea", age: "2 anos", city: "Recife - PE", image: "https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=700&q=85" },
-];
+import { prisma } from "@/lib/prisma";
+import { toAnimalView } from "@/lib/animal-view";
 
 function Logo() {
   return <Link className="logo" href="/"><PawPrint aria-hidden="true" /><span>Adota</span><strong>Pet</strong></Link>;
 }
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+export default async function Home() {
+  const animals=(await prisma.animal.findMany({where:{status:"AVAILABLE"},orderBy:{createdAt:"desc"},take:4})).map(toAnimalView);
   return (
     <main>
       <SiteHeader />
@@ -45,7 +42,7 @@ export default function Home() {
 
       <section className="container section">
         <div className="sectionHead"><div><h2>Animais para adoção</h2><p>Conheça alguns dos nossos amigos que estão esperando por um lar.</p></div><Link href="/animais">Ver todos os animais <ArrowRight size={17}/></Link></div>
-        <div className="petGrid">{animals.map((animal) => <article className="petCard" key={animal.name}><div className="petImage"><Image src={animal.image} alt={`${animal.name}, disponível para adoção`} fill sizes="(max-width: 700px) 90vw, 25vw"/><button aria-label={`Favoritar ${animal.name}`}><Heart/></button></div><div className="petInfo"><h3>{animal.name}</h3><div className="meta"><span><PawPrint/> {animal.type}</span><span>{animal.sex}</span><span><CalendarDays/> {animal.age}</span><span><MapPin/> {animal.city}</span></div><Link href={`/animais/${animal.name.toLowerCase()}`}>Ver perfil</Link></div></article>)}</div>
+        {animals.length?<div className="petGrid">{animals.map((animal) => <article className="petCard" key={animal.slug}><div className="petImage"><Image src={animal.image} alt={`${animal.name}, disponível para adoção`} fill sizes="(max-width: 700px) 90vw, 25vw"/><button aria-label={`Favoritar ${animal.name}`}><Heart/></button></div><div className="petInfo"><h3>{animal.name}</h3><div className="meta"><span><PawPrint/> {animal.breed}</span><span>{animal.sex}</span><span><CalendarDays/> {animal.age}</span><span><MapPin/> {animal.city} - {animal.state}</span></div><Link href={`/animais/${animal.slug}`}>Ver perfil</Link></div></article>)}</div>:<div className="emptyState"><PawPrint/><h2>Nenhum animal disponível no momento</h2><p>Novos animais serão exibidos aqui assim que forem cadastrados.</p></div>}
       </section>
 
       <section className="container section" id="como-adotar">
