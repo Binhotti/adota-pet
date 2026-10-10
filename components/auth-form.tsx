@@ -19,7 +19,8 @@ export function AuthForm() {
     event.preventDefault(); setLoading(true); setError("");
     const data = new FormData(event.currentTarget);
     const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: data.get("email"), password: data.get("password"), expectedRole: access, redirect: params.get("redirect") || undefined }) });
-    const result = await response.json();
+    const text = await response.text();
+    const result = text ? JSON.parse(text) : { error: "O servidor não respondeu. Verifique a conexão com o banco." };
     if (!response.ok) { setError(result.error); setLoading(false); return; }
     router.push(result.redirect); router.refresh();
   }
